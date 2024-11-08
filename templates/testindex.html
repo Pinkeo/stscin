@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seeding Robot Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='assets/css/test.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <a href="#" class="active">Dashboard</a>
+        <a href="{{ url_for ('about')}}">About</a>
+      </div>
+    </div>
+    <div class="container">
+      <h1>Seeding Robot v.1</h1>
+      <div class="content row">
+        <div class="status-box">
+
+            <p id="longitude">longitude: </p>
+            <p id="latitude">latitude: </p>
+            <p id="heading">heading: </p>
+            <p id="heading">Heading: </p>
+            <p id="roll">Roll: </p>
+            <P id="pitch">Pitch: </P>
+            <p id="roll-acceleration">Roll Acceleration: </p>
+            <p id="pitch-acceleration">Pitch Acceleration: </p>
+            <p id="heading-acceleration">Heading Acceleration: </p>
+
+        </div>
+        <div class="info-box">
+          <p id="status">Status: </p>
+          <p id="uptime">Uptime: </p>
+          <p id="distance">Moving Distance:</p>
+          <p id="seed">Seed amount: </p>
+        </div>
+      </div>
+
+        <div class="container">
+            <div class="row">
+              <div class="col-lg-4">
+                <h3>Map</h3>
+                <div id="map"></div>
+              </div>
+              <div class="col-lg-4">
+                <p>Map</p>
+                <a href="https://www.google.com/maps"
+                  ><img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIFeXicUvWEuJix94q3jThu2RaltkyjE9gkA&s"
+                    alt=""
+                /></a>
+              </div>
+              <div class="col-lg-4">
+                <p>Seeding Point</p>
+                <a href="https://www.google.com/maps"
+                  ><img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIFeXicUvWEuJix94q3jThu2RaltkyjE9gkA&s"
+                    alt=""
+                /></a>
+              </div>
+            </div>
+          </div>
+
+
+    </div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/mapbox_token')
+                .then(response => response.json())
+                .then(data => {
+                    var accessToken = data.token;
+
+                    if (!accessToken) {
+                        console.error('Mapbox access token not found');
+                        return;
+                    }
+
+                    console.log('Mapbox access token:', accessToken);  // Debugging: log the token
+
+                    var map = L.map('map').setView([0, 0], 2);
+
+                    // Add OpenStreetMap layer for testing
+                    /*
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map); */
+
+                    // Uncomment the below code to use Mapbox Satellite layer
+                    
+                    L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=' + accessToken, {
+                        attribution: '© Mapbox © OpenStreetMap',
+                        maxZoom: 18,
+                        tileSize: 512,
+                        zoomOffset: -1
+                    }).addTo(map);
+            
+                    var marker = L.marker([0, 0]).addTo(map);
+
+                    var robotPath = [];
+
+                    var socket = io.connect('http://' + document.domain + ':' + location.port + '/');
+
+                    socket.on('update_map', function(data) {
+                        console.log('Data received:', data);  // Log received data
+                        var lat = parseFloat(data.latitude);
+                        var lon = parseFloat(data.longitude);
+                        console.log('Updating marker position to:', lat, lon);  // Log new marker position
+                        marker.setLatLng([lat, lon]);
+                        map.setView([lat, lon], 25);
+
+                        robotPath.push([lat, lon]);
+
+                        L.polyline(robotPath, { color: 'red' }).addTo(map);
+
+                        document.getElementById('longitude').innerText = 'longitude: ' + data.longitude;
+                        document.getElementById('latitude').innerText = 'latitude: ' + data.latitude;
+                        document.getElementById('heading').innerText = 'heading: ' + data.heading;
+                        document.getElementById('roll').innerText = 'Roll: ' + data.Roll;
+                        document.getElementById('pitch').innerText = 'Pitch: ' + data.Pitch;
+                        document.getElementById('roll-acceleration').innerText = 'Roll Acceleration: ' + data["Roll Acceleration"];
+                        document.getElementById('pitch-acceleration').innerText = 'Pitch Acceleration: ' + data["Pitch Acceleration"];
+                        document.getElementById('heading-acceleration').innerText = 'Heading Acceleration: ' + data["Heading Acceleration"];
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching Mapbox access token:', error);
+                });
+        });
+    </script>
+
+
+    <footer>
+      <p>
+        Department of Telecommunication Engineering<br />Faculty of
+        Engineering<br />National University of Laos
+      </p>
+    </footer>
+  </body>
+</html>

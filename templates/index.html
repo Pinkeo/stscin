@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<head>
+    <title>Flood Warning</title>
+</head>
+
+<body>
+    <div class="row">
+        <div class="col-12">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script>
+
+const baseLayers = {
+            Streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }),
+            Satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            }),
+            Light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            }),
+            Dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            })
+        };
+
+        const map = L.map('map', {
+            center: [18.166616, 103.030657],
+            zoom: 7,
+            layers: [baseLayers.Streets]
+        });
+
+        L.control.layers(baseLayers).addTo(map);
+
+        const layerSelector = document.getElementById('layer-selector');
+        layerSelector.addEventListener('change', (event) => {
+            const selectedLayer = baseLayers[event.target.value];
+            map.eachLayer((layer) => {
+                map.removeLayer(layer);
+            });
+            selectedLayer.addTo(map);
+        });
+    </script>
+    </div>
+    </div>
+</body>
+{% endblock %}
