@@ -1,20 +1,88 @@
-{% extends "base.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <title>Flood Warning</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}WatchHydro{% endblock %}</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='assets/css/pre.css') }}">
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
 </head>
 
 <body>
-    <div class="row">
-        <div class="col-12">
+    {% block content %}
+
+    <div class="container-fluid d-flex">
+        <!-- Map Container -->
+        <div class="map-container">
             <div id="map"></div>
+        </div>
+
+        <!-- Sidebar on the Right -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="/static/assets/imgs/watchhydro.png" alt="HydroWatch Logo">
+                <div class="user-info">
+                    <p>User one &gt;</p>
+                    <p>userone@one.com</p>
+                </div>
+            </div>
+            <div class="location-info">
+                <h2>Laos</h2>
+                <p>Vientiane</p>
+            </div>
+            <div class="time-buttons">
+                <button>Today</button>
+                <button class="active">Next 5 days</button>
+                <button>Next 15 days</button>
+                <button>Next month</button>
+            </div>
+            <div class="prediction-container">
+                <h3>Prediction</h3>
+                <div class="forecast">
+                    <div class="day">
+                        <p>Tue</p>
+                        <img src="/static/assets/imgs/mdi_flood.png" alt="Water Level Icon" class="icon">
+                        <p>0 M</p>
+                    </div>
+                    <div class="day">
+                        <p>Wed</p>
+                        <img src="/static/assets/imgs/mdi_flood.png" alt="Water Level Icon" class="icon">
+                        <p>0 M</p>
+                    </div>
+                    <div class="day">
+                        <p>Thu</p>
+                        <img src="/static/assets/imgs/mdi_flood_warn.png" alt="Water Level Icon" class="icon">
+                        <p>3.5 M</p>
+                    </div>
+                    <div class="day">
+                        <p>Fri</p>
+                        <img src="/static/assets/imgs/mdi_flood_danger.png" alt="Water Level Icon" class="icon">
+                        <p>8.7 M</p>
+                    </div>
+                    <div class="day">
+                        <p>Sat</p>
+                        <img src="/static/assets/imgs/mdi_flood_warn.png" alt="Water Level Icon" class="icon">
+                        <p>2.1 M</p>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-icon">
+                <img src="/static/assets/imgs/profile.png" alt="Profile Icon">
+            </div>
         </div>
     </div>
 
     <script>
-
-const baseLayers = {
+        // Define base layers
+        const baseLayers = {
             Streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }),
@@ -29,24 +97,26 @@ const baseLayers = {
             })
         };
 
+        // Initialize the map
         const map = L.map('map', {
             center: [18.166616, 103.030657],
             zoom: 7,
             layers: [baseLayers.Streets]
         });
 
-        L.control.layers(baseLayers).addTo(map);
+        // GEE Water Detection Layer URL
+        const geeLayer = L.tileLayer(
+            'https://earthengine.googleapis.com/v1/projects/ee-pinkeokkpm1/maps/d285d13b58714a9c5b2cf1a7f9e4839c-1ae1a336fcb3809345a09398cba9cc43/tiles/%7Bz%7D/%7Bx%7D/%7By%7D',
+            {
+                attribution: '&copy; Google Earth Engine',
+                opacity: 0.7
+            }
+        ).addTo(map);
 
-        const layerSelector = document.getElementById('layer-selector');
-        layerSelector.addEventListener('change', (event) => {
-            const selectedLayer = baseLayers[event.target.value];
-            map.eachLayer((layer) => {
-                map.removeLayer(layer);
-            });
-            selectedLayer.addTo(map);
-        });
+        // Layer control
+        L.control.layers(baseLayers, { "GEE Water Detection": geeLayer }).addTo(map);
     </script>
-    </div>
-    </div>
+    {% endblock %}
 </body>
-{% endblock %}
+
+</html>
